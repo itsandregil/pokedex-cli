@@ -9,7 +9,7 @@ func cleanInput(text string) []string {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(cfg *Config) error
 }
 
 func getCommands() map[string]cliCommand {
@@ -23,6 +23,16 @@ func getCommands() map[string]cliCommand {
 			name:        "help",
 			description: "Displays a help message",
 			callback:    commandHelp,
+		},
+		"map": {
+			name:        "map",
+			description: "Displays locations to explore in an area",
+			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Displays locations to explore in the previous area",
+			callback:    commandMapBack,
 		},
 	}
 }

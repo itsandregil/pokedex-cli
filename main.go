@@ -18,7 +18,7 @@ func main() {
 		commandName := words[0]
 		command, exits := getCommands()[commandName]
 		if exits {
-			err := command.callback()
+			err := command.callback(config)
 			if err != nil {
 				fmt.Println(err)
 			}
