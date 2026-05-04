@@ -1,11 +1,9 @@
 package main
 
-type Config struct {
-	PokeAPI  string
-	Next     string
-	Previous string
-}
+import "github.com/itsandregil/pokedex-cli/internal/pokeapi"
 
-var config = &Config{
-	PokeAPI: "https://pokeapi.co/api/v2/",
+type Config struct {
+	pokeAPIClient   pokeapi.Client
+	nextLocationURL *string
+	prevLocationURL *string
 }

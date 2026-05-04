@@ -1,4 +1,8 @@
-package main
+package pokeapi
+
+const (
+	baseURL = "https://pokeapi.co/api/v2/"
+)
 
 type LocationArea struct {
 	Count    int        `json:"count"`

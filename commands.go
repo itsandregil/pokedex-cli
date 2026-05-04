@@ -1,9 +1,8 @@
 package main
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
-	"net/http"
 	"os"
 )
 
@@ -27,28 +26,14 @@ func commandHelp(cfg *Config) error {
 }
 
 func commandMap(cfg *Config) error {
-	url := cfg.PokeAPI + "location-area"
-	if cfg.Next != "" {
-		url = cfg.Next
-	}
-	res, err := http.Get(url)
+	locationArea, err := cfg.pokeAPIClient.ListLocations(cfg.nextLocationURL)
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
 
-	var locationArea LocationArea
-	decoder := json.NewDecoder(res.Body)
-	if err := decoder.Decode(&locationArea); err != nil {
-		return err
-	}
+	cfg.nextLocationURL = locationArea.Next
+	cfg.prevLocationURL = locationArea.Previous
 
-	if locationArea.Next != nil {
-		cfg.Next = *locationArea.Next
-	}
-	if locationArea.Previous != nil {
-		cfg.Previous = *locationArea.Previous
-	}
 	for _, area := range locationArea.Results {
 		fmt.Println(area.Name)
 	}
@@ -56,29 +41,18 @@ func commandMap(cfg *Config) error {
 }
 
 func commandMapBack(cfg *Config) error {
-	if cfg.Previous == "" {
-		fmt.Println("You are at the first page")
-		return nil
+	if cfg.prevLocationURL == nil {
+		return errors.New("you are at the first page")
 	}
 
-	res, err := http.Get(cfg.Previous)
+	locationArea, err := cfg.pokeAPIClient.ListLocations(cfg.prevLocationURL)
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
 
-	var locationArea LocationArea
-	decoder := json.NewDecoder(res.Body)
-	if err := decoder.Decode(&locationArea); err != nil {
-		return err
-	}
+	cfg.nextLocationURL = locationArea.Next
+	cfg.prevLocationURL = locationArea.Previous
 
-	if locationArea.Next != nil {
-		cfg.Next = *locationArea.Next
-	}
-	if locationArea.Previous != nil {
-		cfg.Previous = *locationArea.Previous
-	}
 	for _, area := range locationArea.Results {
 		fmt.Println(area.Name)
 	}
