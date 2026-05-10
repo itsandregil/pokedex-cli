@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math"
+	"math/rand/v2"
 	"os"
 )
 
@@ -73,5 +75,31 @@ func commandExplore(cfg *Config, args ...string) error {
 	for _, encounter := range result.Encounters {
 		fmt.Println(encounter.Pokemon.Name)
 	}
+	return nil
+}
+
+func commandCatch(cfg *Config, args ...string) error {
+	if len(args) != 1 {
+		return errors.New("usage: catch <pokemon-name>")
+	}
+	pokemonName := args[0]
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
+	pokemon, err := cfg.pokeAPIClient.GetPokemon(pokemonName)
+	if err != nil {
+		return fmt.Errorf("error catching pokemon: %v", err)
+	}
+
+	// Using the exponential decay formula
+	catchChance := 0.05 + (0.9-0.05)*math.Exp(-0.05*float64(pokemon.BaseExperience))
+	userRoll := rand.Float64()
+
+	if userRoll <= catchChance {
+		fmt.Printf("%s was caught!\n", pokemonName)
+		cfg.pokedex[pokemonName] = pokemon
+		return nil
+	}
+
+	fmt.Printf("%s escaped!\n", pokemonName)
 	return nil
 }

@@ -98,3 +98,30 @@ func (c *Client) ListEncounters(locationName string) (PokemonEncounters, error) 
 	c.cache.Add(url, data)
 	return encounters, nil
 }
+
+func (c *Client) GetPokemon(pokemonName string) (Pokemon, error) {
+	url := baseURL + "pokemon" + "/" + pokemonName
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return Pokemon{}, err
+	}
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	pokemon := Pokemon{}
+	if err := json.Unmarshal(data, &pokemon); err != nil {
+		return Pokemon{}, err
+	}
+
+	return pokemon, nil
+}
