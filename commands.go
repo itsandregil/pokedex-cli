@@ -6,6 +6,8 @@ import (
 	"math"
 	"math/rand/v2"
 	"os"
+
+	"github.com/itsandregil/pokedex-cli/internal/pokeapi"
 )
 
 func commandExit(cfg *Config, args ...string) error {
@@ -91,7 +93,7 @@ func commandCatch(cfg *Config, args ...string) error {
 	}
 
 	// Using the exponential decay formula
-	catchChance := 0.05 + (0.9-0.05)*math.Exp(-0.05*float64(pokemon.BaseExperience))
+	catchChance := 0.05 + (0.9-0.05)*math.Exp(-0.01*float64(pokemon.BaseExperience))
 	userRoll := rand.Float64()
 
 	if userRoll <= catchChance {
@@ -101,5 +103,45 @@ func commandCatch(cfg *Config, args ...string) error {
 	}
 
 	fmt.Printf("%s escaped!\n", pokemonName)
+	return nil
+}
+
+func commandInspect(cfg *Config, args ...string) error {
+	if len(args) != 1 {
+		return errors.New("usage: inspect <pokemon-name>")
+	}
+	pokemonName := args[0]
+
+	pokemon, ok := cfg.pokedex[pokemonName]
+	if !ok {
+		return fmt.Errorf("You have not caught %s yet!", pokemonName)
+	}
+	printPokemon(pokemon)
+	return nil
+}
+
+func printPokemon(pokemon pokeapi.Pokemon) {
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Height: %d\n", pokemon.Height)
+	fmt.Printf("Weight: %d\n", pokemon.Weight)
+	fmt.Printf("Stats:\n")
+	for _, stat := range pokemon.Stats {
+		fmt.Printf("  -%s: %d\n", stat.Stat.Name, stat.BaseStat)
+	}
+	fmt.Printf("Types:\n")
+	for _, t := range pokemon.Types {
+		fmt.Printf("  -%s\n", t.Type.Name)
+	}
+}
+
+func commandPokedex(cfg *Config, args ...string) error {
+	if len(cfg.pokedex) == 0 {
+		fmt.Println("Your pokedex is empty!")
+		return nil
+	}
+
+	for pokemonName := range cfg.pokedex {
+		fmt.Printf("- %s\n", pokemonName)
+	}
 	return nil
 }
