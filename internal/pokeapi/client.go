@@ -62,3 +62,39 @@ func (c *Client) ListLocations(pageURL *string) (LocationArea, error) {
 	c.cache.Add(url, data)
 	return locationArea, nil
 }
+
+func (c *Client) ListEncounters(locationName string) (PokemonEncounters, error) {
+	url := baseURL + "location-area" + "/" + locationName
+
+	if cached, ok := c.cache.Get(url); ok {
+		encounters := PokemonEncounters{}
+		if err := json.Unmarshal(cached, &encounters); err != nil {
+			return PokemonEncounters{}, err
+		}
+		return encounters, nil
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return PokemonEncounters{}, err
+	}
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return PokemonEncounters{}, err
+	}
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return PokemonEncounters{}, err
+	}
+
+	encounters := PokemonEncounters{}
+	if err := json.Unmarshal(data, &encounters); err != nil {
+		return PokemonEncounters{}, err
+	}
+
+	c.cache.Add(url, data)
+	return encounters, nil
+}

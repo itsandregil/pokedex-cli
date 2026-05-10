@@ -6,13 +6,13 @@ import (
 	"os"
 )
 
-func commandExit(cfg *Config) error {
+func commandExit(cfg *Config, args ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(cfg *Config) error {
+func commandHelp(cfg *Config, args ...string) error {
 	fmt.Println()
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
@@ -25,7 +25,7 @@ func commandHelp(cfg *Config) error {
 	return nil
 }
 
-func commandMap(cfg *Config) error {
+func commandMap(cfg *Config, args ...string) error {
 	locationArea, err := cfg.pokeAPIClient.ListLocations(cfg.nextLocationURL)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func commandMap(cfg *Config) error {
 	return nil
 }
 
-func commandMapBack(cfg *Config) error {
+func commandMapBack(cfg *Config, args ...string) error {
 	if cfg.prevLocationURL == nil {
 		return errors.New("you are at the first page")
 	}
@@ -55,6 +55,23 @@ func commandMapBack(cfg *Config) error {
 
 	for _, area := range locationArea.Results {
 		fmt.Println(area.Name)
+	}
+	return nil
+}
+
+func commandExplore(cfg *Config, args ...string) error {
+	if len(args) != 1 {
+		return errors.New("usage: explore <location-name>")
+	}
+	locationName := args[0]
+
+	result, err := cfg.pokeAPIClient.ListEncounters(locationName)
+	if err != nil {
+		return fmt.Errorf("error exploring area: %v", err)
+	}
+
+	for _, encounter := range result.Encounters {
+		fmt.Println(encounter.Pokemon.Name)
 	}
 	return nil
 }
